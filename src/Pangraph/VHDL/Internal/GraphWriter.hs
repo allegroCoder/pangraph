@@ -100,18 +100,6 @@ createRegister =   "\tCOMPONENT ffd IS\n"
                 ++ "\t\t);\n"
                 ++ "\tEND COMPONENT;\n\n"
 
--- createRegisterGeneric :: Int -> String
--- createRegisterGeneric n =   "\tCOMPONENT Register_gen IS\n"
---                          ++ "\t\tgeneric (N : integer := " ++ show n ++ ");\n"
---                          ++ "\t\tPORT (\n"
---                          ++ "\t\t\tCLK\t\t: IN\tstd_logic;\n"
---                          ++ "\t\t\tRST\t\t: IN\tstd_logic;\n"
---                          ++ "\t\t\tEN\t\t: IN\tstd_logic;\n"
---                          ++ "\t\t\tDATA_IN\t\t: IN\tstd_logic_vector(N-1 downto 0);\n"
---                          ++ "\t\t\tDATA_OUT\t: OUT\tstd_logic_vector(N-1 downto 0)\n"
---                          ++ "\t\t);\n"
---                          ++ "\tEND COMPONENT;\n\n"
-
 createSignals :: [P.Vertex] -> String
 createSignals ns = do
     let nRegs   = length ns

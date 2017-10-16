@@ -14,7 +14,7 @@ writeEnvironment g = do
         entity      = createEntity g
         archOpen    = openArchitecture g
         modules     = instantiateModules g
-        wires       = connectWires g
+        wires       = connectWires
         archClose   = closeArchitecture
     library ++ entity ++ archOpen ++ modules ++ wires ++ archClose
 
@@ -65,6 +65,18 @@ createComponents ns = accumulator
                    ++ ffd
                    ++ delayer
                    ++ comparator
+                   ++ adderFunction
+
+adderFunction :: String
+adderFunction = "\tfunction count_ones (s : std_logic_vector) return integer is\n"
+         ++ "\t\tvariable tmp : natural := 0;\n"
+         ++ "\tbegin\n"
+         ++ "\t\tfor i in s'range loop\n"
+         ++ "\t\t\tif s(i) = '1' then tmp := tmp + 1;\n"
+         ++ "\t\t\tend if;\n"
+         ++ "\t\tend loop;\n\n"
+         ++ "\t\treturn tmp;\t\n"
+         ++ "\tend function count_ones;\n\n"
 
 comparator :: String
 comparator = "\tCOMPONENT Generic_zero_comparator IS\n"
@@ -386,24 +398,17 @@ genericAccumulator ns =  "\tACCUMULATOR : Generic_accumulator\n"
                       ++ "\t\t\tDIN\t=> mul,\n"
                       ++ "\t\t\tDOUT\t=> res);\n\n"
 
-connectWires :: P.Pangraph -> String
-connectWires p =  "\tsum <= " ++ adders ns (nNodes-1)
-                               ++ multiplier
-                                  where
-                                    nNodes = length ns
-                                    ns = P.vertexList p
+connectWires :: String
+connectWires =  adder ++ multiplier
 
-adders :: [P.Vertex] -> Int -> String
-adders ns 0 = "\t\t(\"" ++ generateZeros ((bitSum ns)-1) ++ "\" & sync_out(0));\n\n"
-adders ns n = "\t\t(\"" ++ generateZeros ((bitSum ns)-1) ++ "\" & sync_out(" ++ show (n) ++ "))\t+\n"
-                        ++ adders ns (n-1)
+adder :: String
+adder =  "\tprocess(sync_out)\n"
+      ++ "\tbegin\n"
+      ++ "\t\tsum <= std_logic_vector(to_unsigned(count_ones(sync_out), sum'length));\n"
+      ++ "\tend process;\n\n"
 
 multiplier :: String
 multiplier = "\tmul <= sum_mul2 * count_mul2;\n\n"
-
-generateZeros :: Int -> String
-generateZeros 0 = ""
-generateZeros n = "0" ++ generateZeros (n-1)
 
 bitSum :: [P.Vertex] -> Int
 bitSum ns = ceiling (logBase (2.0 :: Double) (fromIntegral nNodes))
